@@ -1,4 +1,4 @@
-import { Todo } from '../types/Todo';
+import { Todo } from '../types';
 import { FilterStatus } from '../constants';
 import getActiveTodos from './getActiveTodos';
 import getCompletedTodos from './getCompletedTodos';
