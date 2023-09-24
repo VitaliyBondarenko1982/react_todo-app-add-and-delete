@@ -1,9 +1,10 @@
 import useTodosContext from '../../contexts/useTodosContext';
 import TodoItem from '../TodoItem';
 import { getFilteredTodos } from '../../utils';
+import TempTodo from '../TempTodo';
 
 const TodoList = () => {
-  const { todos, filter } = useTodosContext();
+  const { todos, filter, tempTodo } = useTodosContext();
 
   const filteredTodos = getFilteredTodos(todos, filter);
 
@@ -12,6 +13,7 @@ const TodoList = () => {
       {filteredTodos.map(todo => (
         <TodoItem todo={todo} key={todo.id} />
       ))}
+      {tempTodo && <TempTodo tempTodo={tempTodo} />}
     </section>
   );
 };

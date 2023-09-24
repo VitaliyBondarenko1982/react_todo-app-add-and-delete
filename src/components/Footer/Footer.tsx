@@ -1,7 +1,8 @@
 import cn from 'classnames';
 import useTodosContext from '../../contexts/useTodosContext';
-import { FilterStatus } from '../../constants';
+import { FilterStatus, TodosError } from '../../constants';
 import { getActiveTodos, getCompletedTodos } from '../../utils';
+import { deleteTodo } from '../../api/todos';
 
 const filterLinks = [
   {
@@ -22,10 +23,31 @@ const filterLinks = [
 ];
 
 const Footer = () => {
-  const { todos, filter, handleFilter } = useTodosContext();
+  const {
+    todos,
+    setTodos,
+    filter,
+    handleFilter,
+    handleErrorMessage,
+    setTodosInProcess,
+  } = useTodosContext();
 
   const activeTodos = getActiveTodos(todos);
   const completedTodos = getCompletedTodos(todos);
+
+  const removeCompletedTodos = () => {
+    const completedTodosIds = getCompletedTodos(todos).map(t => t.id);
+
+    setTodosInProcess(completedTodosIds);
+
+    Promise
+      .all(completedTodosIds
+        .map(id => deleteTodo(id)))
+      .then(() => setTodos(prevTodos => prevTodos
+        .filter((todo) => !completedTodosIds.includes(todo.id))))
+      .catch(handleErrorMessage(TodosError.DELETE_TODO))
+      .finally(() => setTodosInProcess([]));
+  };
 
   return (
     <footer className="todoapp__footer" data-cy="Footer">
@@ -47,15 +69,15 @@ const Footer = () => {
         ))}
       </nav>
 
-      {!!completedTodos.length && (
-        <button
-          type="button"
-          className="todoapp__clear-completed"
-          data-cy="ClearCompletedButton"
-        >
-          Clear completed
-        </button>
-      )}
+      <button
+        type="button"
+        className="todoapp__clear-completed"
+        data-cy="ClearCompletedButton"
+        onClick={removeCompletedTodos}
+        disabled={!completedTodos.length}
+      >
+        Clear completed
+      </button>
     </footer>
   );
 };

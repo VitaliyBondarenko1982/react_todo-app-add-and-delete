@@ -1,15 +1,17 @@
 import {
   createContext, Dispatch, FC, ReactNode, SetStateAction, useEffect, useState,
 } from 'react';
-import { Todo } from '../types/Todo';
+import { TempTodo, Todo } from '../types';
 import { FilterStatus, TodosError } from '../constants';
 import { noop } from '../utils';
 
 export interface ITodosContext {
   todos: Todo[];
   setTodos: Dispatch<SetStateAction<Todo[]>>;
-  tempTodo: Todo | null;
-  setTempTodo: Dispatch<SetStateAction<Todo | null>>;
+  tempTodo: TempTodo;
+  setTempTodo: Dispatch<SetStateAction<TempTodo>>;
+  todosInProcess: number[];
+  setTodosInProcess: Dispatch<SetStateAction<number[]>>
   filter: FilterStatus;
   handleFilter: (filterStatus: FilterStatus) => VoidFunction;
   errorMessage: TodosError;
@@ -20,6 +22,8 @@ export const TodosContext = createContext<ITodosContext>({
   setTodos: noop,
   tempTodo: null,
   setTempTodo: noop,
+  todosInProcess: [],
+  setTodosInProcess: noop,
   filter: FilterStatus.ALL,
   handleFilter: () => noop,
   errorMessage: TodosError.NONE,
@@ -32,7 +36,8 @@ interface Props {
 
 const TodosContextProvider: FC<Props> = ({ children }) => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
+  const [tempTodo, setTempTodo] = useState<TempTodo>(null);
+  const [todosInProcess, setTodosInProcess] = useState<number[]>([]);
   const [filter, setFilter] = useState<FilterStatus>(FilterStatus.ALL);
   const [errorMessage, setErrorMessage] = useState<TodosError>(TodosError.NONE);
 
@@ -45,11 +50,15 @@ const TodosContextProvider: FC<Props> = ({ children }) => {
   };
 
   useEffect(() => {
+    let timer = 0;
+
     if (errorMessage) {
-      setTimeout(() => {
+      timer = window.setTimeout(() => {
         setErrorMessage(TodosError.NONE);
       }, 3000);
     }
+
+    return () => clearTimeout(timer);
   }, [errorMessage]);
 
   return (
@@ -58,6 +67,8 @@ const TodosContextProvider: FC<Props> = ({ children }) => {
       setTodos,
       tempTodo,
       setTempTodo,
+      todosInProcess,
+      setTodosInProcess,
       filter,
       handleFilter,
       errorMessage,
